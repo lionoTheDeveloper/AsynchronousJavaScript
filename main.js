@@ -41,13 +41,16 @@ B();
 
 /* 
     Problem with synchronous, blocking, single-threaded model of javascript
+*/
     let response = fetchDataFromDB('endpoint');
     displayDataFromDB(response);
+/* 
     -fetchDataFromDB('endpoint') could take 1 second or even more
     -During that time, we cant run any further code
     -Javascript, if it simply proceeds to the next line without waiting, we have an error because data is not what we expect it to be
     -We need a way to have asynchronous behavior with javascript
 */
+
 
 /*
     Async JavaScript - How ?
@@ -76,18 +79,14 @@ B();
         -The second parameter is a number representing the duration in milliseconds to wait before executing the code
         -After the second parameter, you can pass in zero or more values that represent any parameters you want to pass the function when it is run
 */
-
 function greet(){
     console.log('hello');
 }
-
 setTimeout(greet,2000);
 //->logs 'Hello' to the console after 2 seconds
-
 function greet(name){
     console.log(`Hello ${name} darling`);
 }
-
 setTimeout(greet, 2000,'Lara');
 //->logs 'Hello Lara Darling' to the console after 2 seconds
  
@@ -96,7 +95,6 @@ setTimeout(greet, 2000,'Lara');
         -To clear timeout, you can use the clearTimeout() methods passing in the identifier returned by setTimeout as a parameter
 
 */
-
 function greet2(){
     console.log('Hello');
 }
@@ -125,7 +123,6 @@ setInterval(greet3,2000);
 /*
         -Intervals keep running a task forever so you should clear the interval when appropriate
 */
-
 function greet4(){
     console.log('Hello');
 }
@@ -154,7 +151,6 @@ setTimeout(function run(){
 setInterval(function run(){
     console.log('Hello');
 },100);
-
 /*
     c-The duration interval includes the time taken execute the code you want to run.
         The code takes 40 ms to run, the interval is 60 ms.
@@ -617,4 +613,105 @@ Promise.race([promise17,promise18]).then((values)=>{
 
 /*
             ASYNC - AWAIT
+    Promises Recap
+        -Basic syntax
+        -How to add success and failure callbacks
+        -How chaining Promise solves the problem we had with callback hell.
+        -There is a way to improve it even further.
+        -By using async/await keywords introduced in ES2017
+        -The async/await keywords allow us to write completely synchronous-looking code while performing asynchronous tasks behind the scenes
+
 */
+
+/*
+    Async
+        -The async keyword is used to declare async functions
+        -Async functions are functions that are instances of the AsyncFunction constructor
+        -Unlike normal functions, async functions always return a promise
+*/
+
+//Normal function
+
+function greet8(){
+    return "Hello";
+}
+greet8();
+/*
+    Result to Browser Console
+    'Hello'
+*/
+
+//Async function
+
+async function greet9(){
+    return 'Hello';
+}
+greet9();
+/*
+    Result to Browser Console
+    Promise{<fulfilled>:"Hello"}
+*/
+
+async function greet10(){
+    return Promise.resolve('Hello');
+}
+greet10()
+    .then(value => console.log(value));
+/*
+    Result to Browser Console
+    "Hello"
+*/
+
+/*
+    Await
+        -await keyword can be put in front of any async promise based function to 
+            pause your code until that promise settles ans return its result.
+        -await only works inside async functions. Cannot use await in normal functions
+
+*/
+
+async function greet11(){
+    let promise = new Promise((resolve,reject)=>{
+        setTimeout(() => {
+            resolve('Hello')
+        }, 1000);
+    });
+    let result = await promise; //wait until promise resolves(*)
+    console.log(result);//'Hello'
+}
+greet11();
+
+/*
+    Chaining Promises vs async-await
+*/
+const promise19 = fetchCurrentUser(`api/user`);
+promise19
+    .then(result => fetchFollowersByUserId(`api/followers/${result.userId}`))
+    .then(result => fetchFollowerInterests(`api/interests/${result.followerId}`))
+    .then(result => fetchInterestTag(`api/tags/${result.interestId}`))
+    .then(result => fetchTagDescription(`api/description/${result.tagId}`))
+    .then(result => console.log('Display the data',result));
+
+
+async function fetchData() {
+    const user = await fetchCurrentUser(`api/user`);
+    const followers = await fetchFollowersByUserId(`api/followers/${user.userId}`);
+    const interests = await fetchFollowerInterests(`api/interests/${followers.followerId}`);
+    const tags = await fetchInterestTags(`api/tags/${interests.interestId}`);
+    const description = await fetchTagDescription(`api/description/${tags.tagId}`);
+    console.log('Display the data',tags);
+}
+async function fetchData() {
+    try{
+        const user = await fetchCurrentUser(`api/user`);
+        const followers = await fetchFollowersByUserId(`api/followers/${user.userId}`);
+        const interests = await fetchFollowerInterests(`api/interests/${followers.followerId}`);
+        const tags = await fetchInterestTags(`api/tags/${interests.interestId}`);
+        const description = await fetchTagDescription(`api/description/${tags.tagId}`);
+        console.log('Display the data',tags);
+    }
+    catch(e){
+        console.log('Error',e)
+    }  
+}
+
