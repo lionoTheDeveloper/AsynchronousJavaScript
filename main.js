@@ -715,3 +715,79 @@ async function fetchData() {
     }  
 }
 
+/*
+ Sequential vs Concurrent vs Parallel execution
+*/
+
+function resolveHello(){
+    return new Promise(resolve => {
+        setTimeout(function(){
+            resolve('Hello');
+        },2000)
+    });
+}
+
+function resolveWorld(){
+    return new Promise(resolve => {
+        setTimeout(function(){
+            resolve('World');
+        },1000);
+    });
+}
+
+/*  
+    Sequential execution
+*/
+
+async function sequentialStart(){
+    const hello = await resolveHello();
+    console.log(hello); //logs after 2 seconds
+
+    const world = await resolveWorld();
+    console.log(world); //logs after 2 + 1 = 3 seconds
+}
+sequentialStart(); //Logs 'Hello' 'World' Total time taken = 3 seconds
+
+/*
+    Concurrent execution
+*/
+async function concurrentStart(){
+    const hello = resolveHello();
+    const world = resolveWorld();
+
+    console.log(await hello); //logs after 2 seconds
+    console.log(await world); //logs after 2 seconds
+}
+concurrentStart(); //Logs 'Hello' 'World' Total time taken = 2 seconds
+
+/*
+    Parallel execution
+*/
+
+function parallelStart(){
+    Promise.all([
+        (async () => {console.log(await resolveHello())}),  //logs after 2 seconds
+        (async () => {console.log(await resolveWorld())})   //logs after 1 second
+    ]);
+}
+parallelStart(); //logs 'World' 'Hello' Total time taken = 2 seconds
+
+async function parallelStart(){
+    await Promise.all([
+        (async () => console.log(await resolveHello())),//logs after 2 seconds
+        (async () => console.log(await resolveWorld())) //logs after 1 second
+    ]);
+    console.log('Finally'); //logged after Hello
+}
+parallelStart();  // logs 'World' 'Hello' 'Finally'
+
+/*
+    Summary async - await
+        -The async and await keywords enable asynchronous, promise-based
+            behavior to be written in a cleaner style, avoiding the need to explicitly 
+            configure promise chains
+        -async-await introduced in ES2017
+        -async keyword returns a Promise
+        -await keyword pause execution till Promise resolved or rejected
+        -Sequential vs concurrent vs parallel
+*/
